@@ -1,0 +1,21 @@
+common:
+    target:
+        - max32620hsp
+    macros:
+        - INTERFACE_MAX32620HSP
+        - DAPLINK_HIC_ID=0x97969904  # DAPLINK_HIC_ID_MAX32620HSP TODO: Verify this ID
+    includes:
+        - source/hic_hal/maxim/max32620
+        - source/hic_hal/maxim/max32620hsp
+    sources:
+        hic_hal:
+            - source/hic_hal/maxim/max32620
+            - source/hic_hal/maxim/max32620/armcc
+
+tool_specific:
+    uvision:
+        misc:
+            ld_flags:
+                - --predefine="-I..\..\..\source\hic_hal\maxim\max32620"
+                - --predefine="-I..\..\..\source\hic_hal\maxim\max32620hsp"
+                

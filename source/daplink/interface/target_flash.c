@@ -28,6 +28,7 @@
 #include "target_config.h"
 #include "intelhex.h"
 #include "swd_host.h"
+#include "jtag_host.h"
 #include "flash_intf.h"
 #include "util.h"
 #include "settings.h"
@@ -61,13 +62,25 @@ static error_t target_flash_init()
     }
 
     // Download flash programming algorithm to target and initialise.
+#if(DAP_SWD != 0)
     if (0 == swd_write_memory(flash->algo_start, (uint8_t *)flash->algo_blob, flash->algo_size)) {
         return ERROR_ALGO_DL;
     }
+#else
+    if (0 == jtag_write_memory(flash->algo_start, (uint8_t *)flash->algo_blob, flash->algo_size)) {
+        return ERROR_ALGO_DL;
+    }
+#endif
 
+#if (DAP_SWD != 0)
     if (0 == swd_flash_syscall_exec(&flash->sys_call_s, flash->init, target_device.flash_start, 0, 0, 0)) {
         return ERROR_INIT;
     }
+#else
+    if (0 == jtag_flash_syscall_exec(&flash->sys_call_s, flash->init, target_device.flash_start, 0, 0, 0)) {
+        return ERROR_INIT;
+    }
+#endif
 
     return ERROR_SUCCESS;
 }
@@ -79,7 +92,11 @@ static error_t target_flash_uninit(void)
         target_set_state(RESET_RUN);
     }
 
+#if (DAP_SWD != 0)
     swd_off();
+#else
+    jtag_off();
+#endif
     return ERROR_SUCCESS;
 }
 
@@ -96,11 +113,18 @@ static error_t target_flash_program_page(uint32_t addr, const uint8_t *buf, uint
         uint32_t write_size = MIN(size, flash->program_buffer_size);
 
         // Write page to buffer
+#if (DAP_SWD != 0)
         if (!swd_write_memory(flash->program_buffer, (uint8_t *)buf, write_size)) {
             return ERROR_ALGO_DATA_SEQ;
         }
+#else
+        if (!jtag_write_memory(flash->program_buffer, (uint8_t *)buf, write_size)) {
+            return ERROR_ALGO_DATA_SEQ;
+        }
+#endif
 
         // Run flash programming
+#if (DAP_SWD != 0)
         if (!swd_flash_syscall_exec(&flash->sys_call_s,
                                     flash->program_page,
                                     addr,
@@ -109,6 +133,16 @@ static error_t target_flash_program_page(uint32_t addr, const uint8_t *buf, uint
                                     0)) {
             return ERROR_WRITE;
         }
+#else
+        if (!jtag_flash_syscall_exec(&flash->sys_call_s,
+                                    flash->program_page,
+                                    addr,
+                                    flash->program_buffer_size,
+                                    flash->program_buffer,
+                                    0)) {
+            return ERROR_WRITE;
+        }
+#endif
 
         addr += write_size;
         buf += write_size;
@@ -122,9 +156,15 @@ static error_t target_flash_erase_sector(uint32_t sector)
 {
     const program_target_t *const flash = target_device.flash_algo;
 
+#if (DAP_SWD != 0)
     if (0 == swd_flash_syscall_exec(&flash->sys_call_s, flash->erase_sector, sector * target_device.sector_size, 0, 0, 0)) {
         return ERROR_ERASE_SECTOR;
     }
+#else
+    if (0 == jtag_flash_syscall_exec(&flash->sys_call_s, flash->erase_sector, sector * target_device.sector_size, 0, 0, 0)) {
+        return ERROR_ERASE_SECTOR;
+    }
+#endif
 
     return ERROR_SUCCESS;
 }
@@ -134,9 +174,15 @@ static error_t target_flash_erase_chip(void)
     error_t status = ERROR_SUCCESS;
     const program_target_t *const flash = target_device.flash_algo;
 
+#if (DAP_SWD != 0)
     if (0 == swd_flash_syscall_exec(&flash->sys_call_s, flash->erase_chip, 0, 0, 0, 0)) {
         return ERROR_ERASE_ALL;
     }
+#else
+    if (0 == jtag_flash_syscall_exec(&flash->sys_call_s, flash->erase_chip, 0, 0, 0, 0)) {
+        return ERROR_ERASE_ALL;
+    }
+#endif
 
     // Reset and re-initialize the target after the erase if required
     if (target_device.erase_reset) {

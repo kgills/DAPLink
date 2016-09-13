@@ -44,6 +44,12 @@ module:
     hic_sam3u2c: &module_hic_sam3u2c
         - records/rtos/rtos-cm3.yaml
         - records/hic_hal/sam3u2c.yaml
+    hic_max32620hsp: &module_hic_max32620hsp
+        - records/rtos/rtos-cm4.yaml
+        - records/hic_hal/max32620hsp.yaml
+    hic_max32620mbed: &module_hic_max32620mbed
+        - records/rtos/rtos-cm4.yaml
+        - records/hic_hal/max32620mbed.yaml
 
 projects:
     kl26z_bl:
@@ -190,3 +196,19 @@ projects:
         - *module_if
         - *module_hic_lpc11u35
         - records/board/archlink.yaml
+    max32620hsp_bl:
+        - *module_bl
+        - *module_hic_max32620hsp
+        - records/board/max32620hsp_bl.yaml
+    max32620hsp_if:
+        - *module_if
+        - *module_hic_max32620hsp
+        - records/board/max32620hsp.yaml
+    max32620mbed_bl:
+        - *module_bl
+        - *module_hic_max32620mbed
+        - records/board/max32620mbed_bl.yaml
+    max32620mbed_if:
+        - *module_if
+        - *module_hic_max32620mbed
+        - records/board/max32620mbed.yaml

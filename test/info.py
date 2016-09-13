@@ -24,6 +24,9 @@ HIC_STRING_TO_ID = {
     'kl26z': 0x97969901,
     'lpc11u35': 0x97969902,
     'sam3u2c': 0x97969903,
+    'max32620hsp': 0x97969904,
+    'max32625nxpq': 0x97969905,
+    'max32620mbed': 0x97969906,
 }
 
 
@@ -38,6 +41,8 @@ SUPPORTED_CONFIGURATIONS = [
     (   0x250,      'k20dx_frdmkl02z_if',               'k20dx_bl',         None                            ),
     (   0x260,      'k20dx_frdmkl26z_if',               'k20dx_bl',         None                            ),
     (   0x280,      'k20dx_frdmkw24f_if',               'k20dx_bl',         None                            ),
+    (   0x0407,     'max32620hsp_if',                   'max32620_bl',      None                           ),
+    # (   0x0408,     'max32620mbed_if',                  'max32620_bl',      None                           ),
     (   0x824,      'lpc11u35_lpc824xpresso_if',        None,               'LPCXpresso824-MAX'             ),
     (   0x1017,     'lpc11u35_hrm1017_if',              None,               'mbed-HRM1017'                  ),
     (   0x1018,     'lpc11u35_ssci824_if',              None,               'Switch-Science-mbed-LPC824'    ),
