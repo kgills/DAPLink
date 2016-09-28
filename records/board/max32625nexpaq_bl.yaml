@@ -1,0 +1,14 @@
+common:
+    includes:
+        - source/hic_hal/maxim/max32620
+        - source/hic_hal/maxim/max32625nexpaq
+    sources:
+        board:
+            - source/board/max32620_bl.c
+
+tool_specific:
+    uvision:
+        misc:
+            ld_flags:
+                - --predefine="-I..\..\..\source\hic_hal\maxim\max32620"
+                - --predefine="-I..\..\..\source\hic_hal\maxim\max32625nexpaq"
