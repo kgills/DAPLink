@@ -1,0 +1,9 @@
+common:
+    sources:
+        board:
+            - source/board/max32625pico.c
+        target:
+            - source/target/maxim/max32625/target.c
+            - source/target/maxim/max32625/flash_blob.c
+            - source/target/maxim/max32625/target_reset.c
+            - source/target/maxim/max32625/owm_mbed.c

@@ -199,6 +199,12 @@ __task void main_task(void)
     gpio_led_state_t hid_led_value = GPIO_LED_OFF;
     gpio_led_state_t cdc_led_value = GPIO_LED_OFF;
     gpio_led_state_t msc_led_value = GPIO_LED_OFF;
+
+        // Turn off LED
+    gpio_set_hid_led(GPIO_LED_OFF);
+    gpio_set_cdc_led(GPIO_LED_OFF);
+    gpio_set_msc_led(GPIO_LED_OFF);
+    
     // USB
     uint32_t usb_state_count = USB_BUSY_TIME;
     // thread running after usb connected started
@@ -211,10 +217,7 @@ __task void main_task(void)
     main_task_id = os_tsk_self();
     // leds
     gpio_init();
-    // Turn off LED
-    gpio_set_hid_led(GPIO_LED_OFF);
-    gpio_set_cdc_led(GPIO_LED_OFF);
-    gpio_set_msc_led(GPIO_LED_OFF);
+
     // Initialize the DAP
     DAP_Setup();
     // do some init with the target before USB and files are configured

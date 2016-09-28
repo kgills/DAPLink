@@ -116,7 +116,12 @@ __task void main_task(void)
     // State processing
     uint16_t flags;
     // LED
-    gpio_led_state_t msc_led_value = GPIO_LED_ON;
+    gpio_led_state_t msc_led_value = GPIO_LED_OFF;
+        // Turn off LEDs
+    gpio_set_hid_led(GPIO_LED_OFF);
+    gpio_set_cdc_led(GPIO_LED_OFF);
+    gpio_set_msc_led(GPIO_LED_OFF);
+    
     // USB
     uint32_t usb_state_count;
 
@@ -127,10 +132,7 @@ __task void main_task(void)
 
     // Get a reference to this task
     main_task_id = os_tsk_self();
-    // Turn on LEDs
-    gpio_set_hid_led(GPIO_LED_OFF);
-    gpio_set_cdc_led(GPIO_LED_OFF);
-    gpio_set_msc_led(GPIO_LED_OFF);
+
     // Update version information file
     info_init();
     // USB

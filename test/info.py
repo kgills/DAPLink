@@ -67,6 +67,7 @@ PROJECT_RELEASE_INFO = {
     ('lpc11u35_6lowpan_borderrouterusb_if',         None,       0x0000,     "bin"       ),
     ('lpc11u35_6lowpan_borderrouterethernet_if',    None,       0x0000,     "bin"       ),
     ('lpc11u35_gr_peach_if',                        None,       0x0000,     "bin"       ),
+    ('max32625pico_max32625pico_if',                None,       0x0000,     "bin"       ),
 }
 
 # All supported configurations
@@ -110,6 +111,8 @@ SUPPORTED_CONFIGURATIONS = [
     (   0x1120,     'sam3u2c_mkit_dk_dongle_nrf5x_if',          'sam3u2c_bl',       'Nordic-nRF51-Dongle'                   ),
     (   0x1234,     'lpc11u35_c027_if',                         None,               'u-blox-C027'                           ),
     (   0x1238,     'kl26z_nina_b1_if',                        'kl26z_bl',          None                                    ), # TODO - set target to 'UBLOX_EVA_NINA' when mbed-os supports this
+    (   0x0409,     'max32625pico_max32625pico_if',            'max32625pico_bl',   'MAX32630FTHR'                          ),
+    (   0x0408,     'max32625pico_max32625pico_if',            'max32625pico_bl',   'MAX32625NEXPAQ'                        ),
     (   0x5050,     'lpc11u35_arm_watch_stm32f411_if',          None,               None                                    ),
     (   0x5051,     'lpc11u35_arm_watch_efm32_if',              None,               None                                    ),
     (   0x5052,     'lpc11u35_arm_watch_nrf51_if',              None,               None                                    ),
@@ -133,6 +136,7 @@ HIC_STRING_TO_ID = {
     'kl26z': 0x97969901,
     'lpc11u35': 0x97969902,
     'sam3u2c': 0x97969903,
+    'max32625pico': 0x97969904,
 }
 
 BOARD_ID_LOCKED_WHEN_ERASED = set([
