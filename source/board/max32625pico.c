@@ -1,6 +1,6 @@
 /**
- * @file    nina_b1.c
- * @brief   board ID for the u-blox NINA-B1 EVA maker board
+ * @file    max32620mbed.c
+ * @brief   board ID for the Maxim Integrated MAX32620MBED board
  *
  * DAPLink Interface Firmware
  * Copyright (c) 2009-2016, ARM Limited, All Rights Reserved
@@ -19,13 +19,4 @@
  * limitations under the License.
  */
 
-#include "target_config.h"
-
-const char *board_id = "1238";
-
-void prerun_board_config(void)
-{
-    // NINA-B1 is based on nrf52
-    extern target_cfg_t target_device_nrf52;
-    target_device = target_device_nrf52;
-}
+const char *board_id = "0409";

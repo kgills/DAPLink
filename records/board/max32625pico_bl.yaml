@@ -1,0 +1,14 @@
+common:
+    includes:
+        - source/hic_hal/maxim/max32625
+        - source/hic_hal/maxim/max32625pico
+    sources:
+        board:
+            - source/board/max32625_bl.c
+
+tool_specific:
+    uvision:
+        misc:
+            ld_flags:
+                - --predefine="-I..\..\..\source\hic_hal\maxim\max32625"
+                - --predefine="-I..\..\..\source\hic_hal\maxim\max32625pico"

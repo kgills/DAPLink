@@ -1,6 +1,6 @@
 /**
- * @file    nina_b1.c
- * @brief   board ID for the u-blox NINA-B1 EVA maker board
+ * @file    target.c
+ * @brief   Target information for the max32620
  *
  * DAPLink Interface Firmware
  * Copyright (c) 2009-2016, ARM Limited, All Rights Reserved
@@ -21,11 +21,19 @@
 
 #include "target_config.h"
 
-const char *board_id = "1238";
+// The file flash_blob.c must only be included in target.c
+// #include "flash_blob.c"
 
-void prerun_board_config(void)
-{
-    // NINA-B1 is based on nrf52
-    extern target_cfg_t target_device_nrf52;
-    target_device = target_device_nrf52;
-}
+extern uint32_t flash_algo_blob[];
+extern const program_target_t flash;
+
+// target information
+target_cfg_t target_device = {
+    .sector_size    = 0x2000,
+    .sector_cnt     = (0x200000 / 0x2000),
+    .flash_start    = 0x0,
+    .flash_end      = 0x200000,
+    .ram_start      = 0x20000000,
+    .ram_end        = 0x20080000,
+    .flash_algo     = (program_target_t *) &flash,
+};

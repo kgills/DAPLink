@@ -1,6 +1,6 @@
 /**
- * @file    nina_b1.c
- * @brief   board ID for the u-blox NINA-B1 EVA maker board
+ * @file    max32620_bl.c
+ * @brief   board ID and meta-data for the hardware interface circuit (HIC) based on ATSAM3U
  *
  * DAPLink Interface Firmware
  * Copyright (c) 2009-2016, ARM Limited, All Rights Reserved
@@ -21,11 +21,18 @@
 
 #include "target_config.h"
 
-const char *board_id = "1238";
+char *board_id = "0000";
 
-void prerun_board_config(void)
-{
-    // NINA-B1 is based on nrf52
-    extern target_cfg_t target_device_nrf52;
-    target_device = target_device_nrf52;
-}
+// max32620 target information
+target_cfg_t target_device = {
+    .sector_size    = 0x2000,
+    // Assume memory is regions are same size. Flash algo should ignore requests
+    //  when variable sized sectors exist
+    // .sector_cnt = ((.flash_end - .flash_start) / .sector_size);
+    .sector_cnt     = ((0x80000 - 0x10000) / 0x2000),
+    .flash_start    = 0x00000000 + 0x10000,
+    .flash_end      = 0x00000000 + 0x80000,
+    .ram_start      = 0x20000000,
+    .ram_end        = 0x20028000
+    /* .flash_algo not needed for bootloader */
+};
