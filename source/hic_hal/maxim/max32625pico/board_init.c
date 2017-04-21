@@ -90,18 +90,25 @@ void board_init(void)
     NVIC_EnableIRQ(MXC_GPIO_GET_IRQ(BUTTON_PORT));
 
     // IOH_1W_EN
-    MXC_SETBIT(&MXC_GPIO->out_val[2], 2);
+    MXC_CLRBIT(&MXC_GPIO->out_val[2], 2);
     out_mode = MXC_GPIO->out_mode[2];
     out_mode &= ~(0xFU << (4 * 2));
     out_mode |= (MXC_V_GPIO_OUT_MODE_NORMAL << (4 * 2));
     MXC_GPIO->out_mode[2] = out_mode;
 
     // SWD_HDR_SEL
-    MXC_SETBIT(&MXC_GPIO->out_val[2], 3);
+    MXC_CLRBIT(&MXC_GPIO->out_val[2], 3);
     out_mode = MXC_GPIO->out_mode[2];
     out_mode &= ~(0xFU << (4 * 3));
     out_mode |= (MXC_V_GPIO_OUT_MODE_NORMAL << (4 * 3));
     MXC_GPIO->out_mode[2] = out_mode;
+
+    // VDDIOH_EN
+    MXC_SETBIT(&MXC_GPIO->out_val[3], 6);
+    out_mode = MXC_GPIO->out_mode[3];
+    out_mode &= ~(0xFU << (4 * 6));
+    out_mode |= (MXC_V_GPIO_OUT_MODE_NORMAL << (4 * 6));
+    MXC_GPIO->out_mode[3] = out_mode;
 
     // Strong pull-up disable
     MXC_SETBIT(&MXC_GPIO->out_val[4], 1);

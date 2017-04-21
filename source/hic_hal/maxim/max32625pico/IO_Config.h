@@ -26,8 +26,8 @@
 
 #define CDC_ACM_UART        2
 
-#define TRGT_PORT           3
-#define SRST_PIN            7
+#define TRGT_PORT           0
+#define SRST_PIN            4
 #define TCK_PIN             2
 #define TMS_PIN             3
 #define TX_PIN              0
