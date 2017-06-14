@@ -24,6 +24,14 @@
 
 #include "max32620.h"
 
+#define LED_PORT            4
+#define DAP_LED_PIN         2
+#define MSD_LED_PIN         0
+#define CDC_LED_PIN         1
+
+#define BUTTON_PORT         5
+#define BUTTON_PIN          0
+
 #define OS_MUTEXCNT 8
  
 #endif

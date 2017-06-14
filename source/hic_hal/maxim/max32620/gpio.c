@@ -19,14 +19,7 @@
 #include "gpio_regs.h"
 #include "RTL.h"
 #include "DAP_config.h"
-
-#define LED_PORT            4
-#define DAP_LED_PIN         2
-#define MSD_LED_PIN         0
-#define CDC_LED_PIN         1
-
-#define BUTTON_PORT         5
-#define BUTTON_PIN          0
+#include "IO_Config.h"
 
 void gpio_init(void)
 {

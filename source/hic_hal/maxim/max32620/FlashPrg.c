@@ -18,32 +18,10 @@
 #include "max32620.h"
 #include "flc_regs.h"
 
-
 /******************************************************************************/
-static int PrepareFLC(void)
+static inline int FLC_Busy(void)
 {
-  mxc_flc_regs_t *flc = MXC_FLC;
-
-  /* Check if the flash controller is busy */
-  if (flc->ctrl & MXC_F_FLC_CTRL_PENDING) {
-    return 1;
-  }
-
-  /* Clear stale errors and disable interrupts */
-  if (flc->intr != 0) {
-    flc->intr = 0;
-    if (flc->intr != 0) {
-      flc->intr = MXC_F_FLC_INTR_FAILED_IF;
-      if (flc->intr != 0) {
-        return 1;
-      }
-    }
-  }
-
-  /* Unlock flash */
-  flc->ctrl = (flc->ctrl & ~MXC_F_FLC_CTRL_FLSH_UNLOCK) | MXC_S_FLC_FLSH_UNLOCK_KEY;
-
-  return 0;
+    return (MXC_FLC->ctrl & (MXC_F_FLC_CTRL_WRITE | MXC_F_FLC_CTRL_MASS_ERASE | MXC_F_FLC_CTRL_PAGE_ERASE));
 }
 
 /******************************************************************************/
@@ -51,13 +29,12 @@ uint32_t Init(uint32_t adr, uint32_t clk, uint32_t fnc)
 {
   mxc_flc_regs_t *flc = MXC_FLC;
 
-  /* Check if the flash controller is busy */
-  if (flc->ctrl & MXC_F_FLC_CTRL_PENDING) {
-    return 1;
-  }
-
   // Set flash clock divider to generate a 1MHz clock from the APB clock
   flc->fckdiv = SystemCoreClock/1000000;
+
+  flc->perform |= ((0x1 << 12) | (0x1 << 29));
+
+  while(FLC_Busy()) {}
 
   return  0;  // Finished without Errors
 }
@@ -65,12 +42,10 @@ uint32_t Init(uint32_t adr, uint32_t clk, uint32_t fnc)
 /******************************************************************************/
 uint32_t UnInit(uint32_t fnc)
 {
-  mxc_flc_regs_t *flc = MXC_FLC;
+    /* Lock flash */
+    MXC_FLC->ctrl &= ~MXC_F_FLC_CTRL_FLSH_UNLOCK;
 
-  /* Lock flash */
-  flc->ctrl &= ~MXC_F_FLC_CTRL_FLSH_UNLOCK;
-
-  return  0;  // Finished without Errors
+    return  0;  // Finished without Errors
 }
 
 /******************************************************************************/
@@ -80,31 +55,37 @@ uint32_t UnInit(uint32_t fnc)
  */
 int EraseChip(void)
 {
-  mxc_flc_regs_t *flc = MXC_FLC;
+    /* Check if the flash controller is busy */
+    if (FLC_Busy()) {
+        return 1;
+    }
 
-  /* Prepare for the flash operation */
-  if (PrepareFLC() != 0) {
-    return 1; // Operation failed
-  }
+    /* Clear stale errors. Interrupt flags can only be written to zero, so this is safe */
+    MXC_FLC->intr &= ~MXC_F_FLC_INTR_FAILED_IF;
 
-  /* Write mass erase code */
-  flc->ctrl = (flc->ctrl & ~MXC_F_FLC_CTRL_ERASE_CODE) | MXC_S_FLC_ERASE_CODE_MASS_ERASE;
+    /* Unlock flash */
+    MXC_FLC->ctrl = (MXC_FLC->ctrl & ~MXC_F_FLC_CTRL_FLSH_UNLOCK) | (MXC_V_FLC_FLSH_UNLOCK_KEY << MXC_F_FLC_CTRL_FLSH_UNLOCK_POS);
 
-  /* Issue mass erase command */
-  flc->ctrl |= MXC_F_FLC_CTRL_MASS_ERASE;
+    /* Write the Erase Code */
+    MXC_FLC->ctrl = (MXC_FLC->ctrl & ~MXC_F_FLC_CTRL_ERASE_CODE) | (MXC_V_FLC_ERASE_CODE_MASS_ERASE << MXC_F_FLC_CTRL_ERASE_CODE_POS);
 
-  /* Wait until flash operation is complete */
-  while (flc->ctrl & MXC_F_FLC_CTRL_PENDING);
+    /* Start the mass erase */
+    MXC_FLC->ctrl |= MXC_F_FLC_CTRL_MASS_ERASE;
 
-  /* Lock flash */
-  flc->ctrl &= ~MXC_F_FLC_CTRL_FLSH_UNLOCK;
+    /* Wait until flash operation is complete */
+    while (FLC_Busy());
 
-  /* Check access violations */
-  if (flc->intr & MXC_F_FLC_INTR_FAILED_IF) {
-    return 1; // Operation failed
-  }
+    /* Lock flash */
+    MXC_FLC->ctrl &= ~(MXC_F_FLC_CTRL_FLSH_UNLOCK | MXC_F_FLC_CTRL_ERASE_CODE);
 
-  return  0;  // Finished without Errors
+    /* Check for failures */
+    if (MXC_FLC->intr & MXC_F_FLC_INTR_FAILED_IF) {
+        /* Interrupt flags can only be written to zero, so this is safe */
+        MXC_FLC->intr &= ~MXC_F_FLC_INTR_FAILED_IF;
+        return 1;
+    }
+
+    return 0;
 }
 
 /******************************************************************************/
@@ -115,32 +96,36 @@ int EraseChip(void)
  */
 int EraseSector(unsigned long address)
 {
-  mxc_flc_regs_t *flc = MXC_FLC;
+    /* Wait until flash operation is complete */
+    while (FLC_Busy());
 
-  /* Prepare for the flash operation */
-  if (PrepareFLC() != 0) {
-    return 1; // Operation failed
-  }
+    /* Clear stale errors. Interrupt flags can only be written to zero, so this is safe */
+    MXC_FLC->intr &= ~MXC_F_FLC_INTR_FAILED_IF;
 
-  /* Write page erase code */
-  flc->ctrl = (flc->ctrl & ~MXC_F_FLC_CTRL_ERASE_CODE) | MXC_S_FLC_ERASE_CODE_PAGE_ERASE;
+    /* Unlock flash */
+    MXC_FLC->ctrl = (MXC_FLC->ctrl & ~MXC_F_FLC_CTRL_FLSH_UNLOCK) | (MXC_V_FLC_FLSH_UNLOCK_KEY << MXC_F_FLC_CTRL_FLSH_UNLOCK_POS);
 
-  /* Issue page erase command */
-  flc->faddr = address;
-  flc->ctrl |= MXC_F_FLC_CTRL_PAGE_ERASE;
+    /* Write page erase code */
+    MXC_FLC->ctrl = (MXC_FLC->ctrl & ~MXC_F_FLC_CTRL_ERASE_CODE) | (MXC_V_FLC_ERASE_CODE_PAGE_ERASE << MXC_F_FLC_CTRL_ERASE_CODE_POS);
 
-  /* Wait until flash operation is complete */
-  while (flc->ctrl & MXC_F_FLC_CTRL_PENDING);
+    /* Erase the request page */
+    MXC_FLC->faddr = address;
+    MXC_FLC->ctrl |= MXC_F_FLC_CTRL_PAGE_ERASE;
 
-  /* Lock flash */
-  flc->ctrl &= ~MXC_F_FLC_CTRL_FLSH_UNLOCK;
+    /* Wait until flash operation is complete */
+    while (FLC_Busy());
 
-  /* Check access violations */
-  if (flc->intr & MXC_F_FLC_INTR_FAILED_IF) {
-    return 1; // Operation failed
-  }
+    /* Lock flash */
+    MXC_FLC->ctrl &= ~(MXC_F_FLC_CTRL_FLSH_UNLOCK | MXC_F_FLC_CTRL_ERASE_CODE);
 
-  return  0;  // Finished without Errors
+    /* Check for failures */
+    if (MXC_FLC->intr & MXC_F_FLC_INTR_FAILED_IF) {
+        /* Interrupt flags can only be written to zero, so this is safe */
+        MXC_FLC->intr &= ~MXC_F_FLC_INTR_FAILED_IF;
+        return 1;
+    }
+
+    return 0;
 }
 
 /******************************************************************************/
@@ -153,62 +138,66 @@ int EraseSector(unsigned long address)
  */
 int ProgramPage(unsigned long address, unsigned long size, unsigned char *buffer8)
 {
-  mxc_flc_regs_t *flc = MXC_FLC;
-  unsigned long remaining = size;
-  unsigned long *buffer = (unsigned long *)buffer8;
+    unsigned long remaining = size;
+    unsigned long *buffer = (unsigned long *)buffer8;
 
-  // Only accept 32-bit aligned pointers
-  if ((unsigned long)buffer8 & 0x3) {
-    return 1;
-  }
-  buffer = (unsigned long *)buffer8;
+    // Only accept 32-bit aligned pointers
+    if ((unsigned long)buffer8 & 0x3) {
+        return 1;
+    }
+    buffer = (unsigned long *)buffer8;
 
-  /* Prepare for the flash operation */
-  if (PrepareFLC() != 0) {
-    return 1; // Operation failed
-  }
-
-  while (remaining >= 4) {
-    flc->faddr = address;
-    flc->fdata = *buffer++;
-    flc->ctrl |= MXC_F_FLC_CTRL_WRITE_ENABLE;
-    flc->ctrl |= MXC_F_FLC_CTRL_WRITE;
-
-    /* Wait until flash operation is complete */
-    while (flc->ctrl & MXC_F_FLC_CTRL_PENDING);
-
-    address += 4;
-    remaining -= 4;
-  }
-
-  if (remaining > 0) {
-    uint32_t last_word;
-    uint32_t mask;
-
-    last_word = 0xffffffff;
-    mask = 0xff;
-
-    while (remaining > 0) {
-      last_word &= (*buffer | ~mask);
-      mask <<= 8;
-      remaining--;
+    /* Check if the flash controller is busy */
+    if (FLC_Busy()) {
+        return 1;
     }
 
-    flc->faddr = address;
-    flc->fdata = last_word;
-    flc->ctrl |= MXC_F_FLC_CTRL_WRITE_ENABLE;
+    /* Unlock flash */
+    MXC_FLC->ctrl = (MXC_FLC->ctrl & ~MXC_F_FLC_CTRL_FLSH_UNLOCK) | (MXC_V_FLC_FLSH_UNLOCK_KEY << MXC_F_FLC_CTRL_FLSH_UNLOCK_POS);
 
-    /* Wait until flash operation is complete */
-    while (flc->ctrl & MXC_F_FLC_CTRL_PENDING);
-  }
+    while (remaining >= 4) {
+        MXC_FLC->faddr = address;
+        MXC_FLC->fdata = *buffer++;
+        MXC_FLC->ctrl |= MXC_F_FLC_CTRL_WRITE_ENABLE;
+        MXC_FLC->ctrl |= MXC_F_FLC_CTRL_WRITE;
 
-  /* Lock flash */
-  flc->ctrl &= ~MXC_F_FLC_CTRL_FLSH_UNLOCK;
+        /* Wait until flash operation is complete */
+        while (FLC_Busy());
 
-  /* Check access violations */
-  if (flc->intr & MXC_F_FLC_INTR_FAILED_IF) {
-    return 1; // Operation failed
-  }
+        address += 4;
+        remaining -= 4;
+    }
 
-  return  0;  // Finished without Errors
+    if (remaining > 0) {
+        uint32_t last_word;
+        uint32_t mask;
+
+        last_word = 0xffffffff;
+        mask = 0xff;
+
+        while (remaining > 0) {
+            last_word &= (*buffer | ~mask);
+            mask <<= 8;
+            remaining--;
+        }
+
+        MXC_FLC->faddr = address;
+        MXC_FLC->fdata = last_word;
+        MXC_FLC->ctrl |= MXC_F_FLC_CTRL_WRITE_ENABLE;
+
+        /* Wait until flash operation is complete */
+        while (FLC_Busy());
+    }
+
+    /* Lock flash */
+    MXC_FLC->ctrl &= ~MXC_F_FLC_CTRL_FLSH_UNLOCK;
+
+    /* Check for failures */
+    if (MXC_FLC->intr & MXC_F_FLC_INTR_FAILED_IF) {
+        /* Interrupt flags can only be written to zero, so this is safe */
+        MXC_FLC->intr &= ~MXC_F_FLC_INTR_FAILED_IF;
+        return 1;
+    }
+
+    return  0;
 }

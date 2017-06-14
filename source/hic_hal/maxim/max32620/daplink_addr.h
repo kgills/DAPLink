@@ -27,8 +27,8 @@
 #define DAPLINK_ROM_START               0x00000000
 #define DAPLINK_ROM_SIZE                0x00080000
 
-#define DAPLINK_RAM_START               0x20008000
-#define DAPLINK_RAM_SIZE                0x00038000
+#define DAPLINK_RAM_START               0x20000000
+#define DAPLINK_RAM_SIZE                0x00040000
 
 /* ROM sizes */
 
@@ -46,8 +46,8 @@
 
 /* RAM sizes */
 
-#define DAPLINK_RAM_APP_START           0x20008000
-#define DAPLINK_RAM_APP_SIZE            0x00028000
+#define DAPLINK_RAM_APP_START           0x20000000
+#define DAPLINK_RAM_APP_SIZE            0x00030000
 
 #define DAPLINK_RAM_SHARED_START        0x20030000
 #define DAPLINK_RAM_SHARED_SIZE         0x00010000

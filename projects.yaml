@@ -50,6 +50,9 @@ module:
     hic_max32620mbed: &module_hic_max32620mbed
         - records/rtos/rtos-cm4.yaml
         - records/hic_hal/max32620mbed.yaml
+    hic_max32620_generic: &module_hic_max32620_generic
+        - records/rtos/rtos-cm4.yaml
+        - records/hic_hal/max32620_generic.yaml
 
 projects:
     kl26z_bl:
@@ -212,3 +215,11 @@ projects:
         - *module_if
         - *module_hic_max32620mbed
         - records/board/max32620mbed.yaml
+    max32620_generic_bl:
+        - *module_bl
+        - *module_hic_max32620_generic
+        - records/board/max32620_generic_bl.yaml
+    max32620_generic_if:
+        - *module_if
+        - *module_hic_max32620_generic
+        - records/board/max32620_generic.yaml
